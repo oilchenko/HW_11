@@ -25,7 +25,11 @@ add Ім'я номер_телефону -- додам до списку конт
 change Ім'я старий_номер_телефону новий_номер_телефону -- зміню номер телефону для контакту.
 phone Ім'я -- покажу номер/-и телефону контакту.
 search що_шукати -- спробую знайти те, що тобі потрібно.
-delete Ім'я -- видалю запис.
+delete Ім'я -- видалю контакт.
+bdadd Ім'я дата_народження -- додам день народження для контакту. Формат дати ДД.ММ.РРРР.
+birthday Ім'я -- покажу інформацію про день народження контакту.
+bdchange Ім'я нова_дата_народження -- зміню день народження для контакту на новий. Формат дати ДД.ММ.РРРР.
+bddelete Ім'я -- видалю інформацію про день народження для контакту.
 show all -- покажу всі збережені контакти з номерами телефонів.
 good bye або close або exit -- закінчу роботу
     '''
@@ -41,32 +45,23 @@ def hello_command(*args):
 def add_contact_command(*args):
     if len(args) == 2:
         name = Name(args[0])
-        print("name:", name)
         phone = Phone(args[1])
-        print("type(address_book):", type(address_book))
-        rec = address_book.get(str(name))
-        print(rec)
-        print("address_book.data:", address_book.data)
         record = address_book.data.get(str(name))
-        print("record:", record)
-        record_1 = address_book.get(str(name))
-        print("record_1:", record_1)
         if record:
             return record.add_phone(phone)
         record = Record(name, phone)
         return address_book.add_record(record)
     elif len(args) == 3:
         name = Name(args[0])
-        # print("name:", type(name), name)
         phone = Phone(args[1])
-        # print("phone:", type(phone), phone)
         birthday = Birthday(args[2])
-        # print("birthday:", type(birthday), birthday)
         record = address_book.data.get(str(name))
         if record:
             return record.add_phone(phone), record.add_birthday(birthday)
         record = Record(name, phone, birthday)
         return address_book.add_record(record)
+    else:
+        raise IndexError
    
 
 @input_error
@@ -89,7 +84,7 @@ def phone_command(*args):
         p_list = []
         for p in phones_x:
             p_list.append(str(p))
-        phones_x_list = " ".join(p_list)
+        phones_x_list = ", ".join(p_list)
         return f"Номер/-и телефону/-ів для контакту {name}: {phones_x_list}"
     return f'Книга контактів не містить контакт {name}'
 
@@ -106,7 +101,7 @@ def search_command(*args):
 @input_error
 def delete_command(*args):
     if len(args) != 1:
-        return "Будь ласка, введи команду для видалення у правильному форматі"
+        return "Будь ласка, введи команду для видалення запису у правильному форматі"
     name = args[0]
     record = address_book.data.get(str(name))
     if record:
@@ -115,50 +110,40 @@ def delete_command(*args):
     return f"У адресній книзі немає контакту {name}"
 
 
+@input_error
 def add_birthday_command(*args):
-    print("Enter to the add birthday function")
     if len(args) != 2:
         return "Будь ласка, введи команду для додавання дня народження у правильному форматі"
     name = Name(args[0])
     birthday_date = Birthday(args[1])
     record = address_book.data.get(str(name))
-    print("record:", record)
     if record:
-        # birthday_date = Birthday(args[1])
         return record.add_birthday(birthday_date)
     record = Record(name, birthday=birthday_date)
     return address_book.add_record(record)
 
 
+@input_error
 def birthday_change_command(*args):
-    print("Enter to the birthday change function")
     if len(args) != 2:
         return "Будь ласка, введи команду для зміни дня народження у правильному форматі"
-    # name = Name(args[0])
-    # new_birthday = Birthday(args[1])
-    # print(address_book)
-    # rec = address_book.get(str(name))
-    # print("rec:", rec)
-    # if rec:
-    #     return rec.change_birthday(new_birthday)
-    # return f'Книга контактів не містить контакт {name}'
-    
     name = Name(args[0])
-    print("name:", name)
-    print("type(name):", type(name))
     new_birthday = Birthday(args[1])
-    print("new_birthday:", new_birthday)
-    print("type(new_birthday):", type(new_birthday))
-    # record = address_book.data.get(str(name))
     record = address_book.data.get(str(name))
-    print("record:", record)
-    print("type(record):", type(record))
-    # record = address_book.data.get("Ivan")
-    # print("record:", record)
-    print(address_book)
     if record:
         return record.change_birthday(new_birthday)
     return f'Книга контактів не містить контакт {name}'
+
+
+@input_error
+def birthday_delete_command(*args):
+    if len(args) != 1:
+        return "Будь ласка, введи команду для видалення дня народження у правильному форматі"
+    name = args[0]
+    record: Record = address_book.data.get(str(name))
+    if record:
+        return record.del_birthday(record.birthday)
+    return f"У адресній книзі немає контакту {name}"
 
 
 @input_error
@@ -171,7 +156,8 @@ def birthday_command(*args):
 
 @input_error
 def show_all_contacts_command():
-    return address_book.show_all_contacts()
+    print(address_book)
+    return address_book
 
 
 @input_error
@@ -206,7 +192,7 @@ COMMANDS = {
         birthday_command: ['birthday'],
         add_birthday_command: ['bdadd'],
         birthday_change_command: ['bdchange'],
-        # birthday_delete_command: ['deletebd'],
+        birthday_delete_command: ['bddelete'],
         show_all_contacts_command: ["show all"],
         exit_command: ["good bye", "close", "exit"]
         }
